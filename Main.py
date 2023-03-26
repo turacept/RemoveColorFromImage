@@ -1,8 +1,7 @@
-# img_viewer.py
 import PySimpleGUI as sg
 import os.path
+import RemoveColor as rc
 
-# First the window layout in 2 columns
 
 file_list_column = [
     [
@@ -17,14 +16,17 @@ file_list_column = [
     ],
 ]
 
-# For now will only show the name of the file that was chosen
 image_viewer_column = [
+    [sg.Text("White Tolerance")],
+    [sg.Slider(range=(5, 50), default_value=12,
+               expand_x=True, enable_events=True,
+               orientation='horizontal', key='-SL-')],
     [sg.Text("Choose an image from list on left:")],
     [sg.Text(size=(40, 1), key="-TOUT-")],
     [sg.Image(key="-IMAGE-")],
 ]
 
-# ----- Full layout -----
+# Full layout
 layout = [
     [
         sg.Column(file_list_column),
@@ -35,16 +37,13 @@ layout = [
 
 window = sg.Window("Image Viewer", layout)
 
-# Run the Event Loop
 while True:
     event, values = window.read()
     if event == "Exit" or event == sg.WIN_CLOSED:
         break
-    # Folder name was filled in, make a list of files in the folder
     if event == "-FOLDER-":
         folder = values["-FOLDER-"]
         try:
-            # Get list of files in folder
             file_list = os.listdir(folder)
         except:
             file_list = []
@@ -53,16 +52,19 @@ while True:
             f
             for f in file_list
             if os.path.isfile(os.path.join(folder, f))
-            and f.lower().endswith((".png", ".gif"))
+               and f.lower().endswith((".png", ".gif"))
         ]
         window["-FILE LIST-"].update(fnames)
-    elif event == "-FILE LIST-":  # A file was chosen from the listbox
+    elif event == "-FILE LIST-":
         try:
             filename = os.path.join(
                 values["-FOLDER-"], values["-FILE LIST-"][0]
             )
             window["-TOUT-"].update(filename)
             window["-IMAGE-"].update(filename=filename)
+            rc.tolerance = values['-SL-']
+            rc.LoadImg(filename)
+            window["-IMAGE-"].update(filename="output_image.png")
 
         except:
             pass
